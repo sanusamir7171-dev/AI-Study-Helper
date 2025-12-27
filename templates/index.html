@@ -2,10 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-
-    <!-- 🔴 MOST IMPORTANT FOR MOBILE -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
     <title>Sam AI</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
@@ -15,9 +11,11 @@
 
     <!-- HEADER -->
     <div class="chat-header">
-        <h1>🤖 Sam AI</h1>
+        <h1>Sam AI</h1>
         <p>Your Personal Study Assistant</p>
-        <a href="/clear" class="clear-btn">🗑️ Clear Chat</a>
+        <a href="/clear" style="font-size:12px; color:#a78bfa; text-decoration:none;">
+            Clear Chat
+        </a>
     </div>
 
     <!-- CHAT BODY -->
@@ -27,13 +25,15 @@
             {% for msg in messages %}
 
                 {% if msg.role == "user" %}
-                <!-- USER MESSAGE -->
+                <!-- USER MESSAGE (RIGHT) -->
                 <div class="msg-row right">
-                    <div class="user-msg">{{ msg.content }}</div>
+                    <div class="user-msg">
+                        {{ msg.content }}
+                    </div>
                 </div>
 
                 {% elif msg.role == "assistant" and msg.type == "text" %}
-                <!-- AI MESSAGE -->
+                <!-- AI TEXT MESSAGE (LEFT) -->
                 <div class="msg-row left">
                     <div class="ai-msg">
                         <div class="thinking">Sam AI is thinking...</div>
@@ -42,20 +42,24 @@
                 </div>
 
                 {% elif msg.role == "assistant" and msg.type == "image" %}
-                <!-- AI IMAGE -->
+                <!-- AI IMAGE MESSAGE (LEFT) -->
                 <div class="msg-row left">
                     <div class="ai-msg">
                         <img src="{{ msg.content }}"
-                             style="max-width:100%; border-radius:10px;">
+                             style="max-width:100%; border-radius:10px; margin-top:6px;">
                         <br><br>
-                        <a href="{{ msg.content }}" target="_blank">⬇️ Download Image</a>
+                        <a href="{{ msg.content }}" target="_blank">
+                            ⬇️ Download Image
+                        </a>
                     </div>
                 </div>
                 {% endif %}
 
             {% endfor %}
         {% else %}
-            <div class="empty-state">Ask me anything ✨</div>
+            <div class="empty-state">
+                Ask me anything ✨<br>
+            </div>
         {% endif %}
 
     </div>
@@ -71,31 +75,38 @@
 
 </div>
 
-<span class="creator">Created by Samir Singh</span>
+<div>
+    <span class="creator">Created by Samir Singh</span>
+</div>
 
-<!-- ================= JS ================= -->
+<!-- JS -->
 <script>
 const textarea = document.getElementById("questionBox");
 const chatBody = document.getElementById("chatBody");
 const form = document.getElementById("chatForm");
 
-/* ENTER → SUBMIT */
-textarea.addEventListener("keydown", e => {
+// ENTER = submit
+textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         form.requestSubmit();
     }
 });
 
-/* PAGE LOAD → BOTTOM */
+// PAGE LOAD → always bottom
 window.addEventListener("load", () => {
     chatBody.scrollTop = chatBody.scrollHeight;
 });
 
-/* FORM SUBMIT UX FIX */
-form.addEventListener("submit", () => {
+// FORM SUBMIT HANDLER
+form.addEventListener("submit", function () {
+    // 👉 sirf UX ke liye
+    // backend hi message render karega
+
     // textarea turant clear
-    setTimeout(() => textarea.value = "", 0);
+    setTimeout(() => {
+        textarea.value = "";
+    }, 0);
 
     // scroll bottom
     setTimeout(() => {
@@ -103,22 +114,20 @@ form.addEventListener("submit", () => {
     }, 50);
 });
 
-/* 🔙 MOBILE BACK BUTTON FIX (2 back = exit) */
+/* 🔁 Fix mobile back button issue */
 (function () {
-    let backCount = 0;
+    // replace current history entry
+    window.history.replaceState({}, document.title, window.location.pathname);
 
-    history.replaceState({page:1}, "", "");
-
-    window.addEventListener("popstate", () => {
-        backCount++;
-        if (backCount < 2) {
-            history.pushState({page:1}, "", "");
-        } else {
-            history.back(); // exit page
-        }
+    window.addEventListener("popstate", function () {
+        // second back → allow exit
+        window.history.go(-1);
     });
 })();
+
+
 </script>
+
 
 </body>
 </html>
