@@ -69,7 +69,6 @@ You are Sam AI.
 
 IMPORTANT FACTS:
 - You were created by Samir Singh.
-- you creator wife name is Priyanshu Singh.
 - Your creation date is 27 December 2025.
 - Today's real date is {today}.
 
@@ -135,5 +134,6 @@ def clear_chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
