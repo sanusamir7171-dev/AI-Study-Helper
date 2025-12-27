@@ -176,3 +176,11 @@ body {
     background: linear-gradient(#38bdf8, #0ea5e9);
     border-radius: 10px;
 }
+.user-msg,
+.ai-msg {
+    max-width: 80%;
+}
+.chat-header {
+    padding: 36px 22px 24px;
+}
+
