@@ -20,7 +20,8 @@
     </div>
 
     <!-- CHAT BODY -->
-    <div class="chat-body">
+    <div class="chat-body" id="chatBody">
+
 
         {% if messages %}
             {% for msg in messages %}
@@ -85,6 +86,10 @@ textarea.addEventListener("keydown", function (e) {
         this.form.submit();
     }
 });
+        const chatBody = document.getElementById("chatBody");
+    if (chatBody) {
+        chatBody.scrollTop = chatBody.scrollHeight;
+    }
 </script>
 
 </body>
