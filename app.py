@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, jsonify
 from openai import OpenAI
 from datetime import datetime
 import os
@@ -15,7 +15,6 @@ def ai_answer(question):
     # USER MESSAGE SAVE
     conversation.append({
         "role": "user",
-        "type": "text",
         "content": question
     })
 
@@ -35,20 +34,22 @@ def ai_answer(question):
 
             conversation.append({
                 "role": "assistant",
+                "content": img_url,
+                "is_image": True
+            })
+
+            return {
                 "type": "image",
                 "content": img_url
-            })
-            return
+            }
 
         except Exception as e:
-            conversation.append({
-                "role": "assistant",
+            return {
                 "type": "text",
                 "content": f"Image Error: {e}"
-            })
-            return
+            }
 
-    # 🧠 SYSTEM IDENTITY + DATE (REAL TIME)
+    # 🧠 SYSTEM IDENTITY + REAL DATE
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
@@ -62,18 +63,11 @@ IMPORTANT FACTS:
 RULES:
 - Never say the year is 2024.
 - Always answer with the correct current date.
-- Remember the ongoing conversation context.
+- Remember the ongoing conversation.
 """
 
-    # TEXT CONTEXT ONLY
     context = [{"role": "system", "content": system_prompt}]
-
-    for msg in conversation:
-        if msg["type"] == "text":
-            context.append({
-                "role": msg["role"],
-                "content": msg["content"]
-            })
+    context.extend(conversation)
 
     # 📝 TEXT ANSWER
     try:
@@ -86,33 +80,38 @@ RULES:
 
         conversation.append({
             "role": "assistant",
-            "type": "text",
             "content": answer
         })
 
+        return {
+            "type": "text",
+            "content": answer
+        }
+
     except Exception as e:
-        conversation.append({
-            "role": "assistant",
+        return {
             "type": "text",
             "content": f"AI Error: {e}"
-        })
+        }
 
 
-@app.route("/", methods=["GET", "POST"])
+@app.route("/")
 def home():
-    if request.method == "POST":
-        question = request.form["question"]
-        ai_answer(question)
-        return redirect(url_for("home"))
+    return render_template("index.html")
 
-    return render_template("index.html", messages=conversation)
+
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.json
+    result = ai_answer(data["question"])
+    return jsonify(result)
 
 
 @app.route("/clear")
 def clear_chat():
     global conversation
     conversation = []
-    return redirect(url_for("home"))
+    return ("", 204)
 
 
 if __name__ == "__main__":
