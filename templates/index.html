@@ -14,9 +14,13 @@
     <div class="chat-header">
         <h1>Sam AI</h1>
         <p>Your Personal Study Assistant</p>
-        <a href="/clear" style="font-size:12px; color:#a78bfa; text-decoration:none;">
+        <a 
+            href="/clear" style="font-size:12px; color:#a78bfa; text-decoration:none;">
             Clear Chat
         </a>
+        <a  href="/" target="_blank" class="new-tab-btn">
+    🔗 Open in New Tab
+            <a/>
     </div>
 
     <!-- CHAT BODY -->
@@ -131,6 +135,9 @@ window.addEventListener("popstate", function () {
         window.history.back(); // exit page
     }
 });
+    if (performance.navigation.type === 1) {
+    window.location.href = "/";
+}
 </script>
 
 </body>
