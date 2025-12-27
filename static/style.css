@@ -7,7 +7,7 @@
 
 /* 🌈 FULL SCREEN BACKGROUND */
 body {
-    height: 100vh;
+    height: 90vh;
     width: 100vw;
     background: radial-gradient(circle at top, #0f172a, #020617 70%);
     color: #e5e7eb;
@@ -17,7 +17,7 @@ body {
 /* 🖥️ FULL SCREEN CHAT */
 .chat-wrapper {
     width: 100vw;
-    height: 100vh;
+    height: 90vh;
     background: linear-gradient(180deg, #020617, #020617);
     display: flex;
     flex-direction: column;
