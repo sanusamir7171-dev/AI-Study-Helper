@@ -226,36 +226,3 @@ body {
         font-size: 12px;
     }
 }
-.new-tab-btn {
-    position: absolute;
-    right: 18px;
-    top: 18px;
-    font-size: 12px;
-    color: #38bdf8;
-    text-decoration: none;
-}
-.new-tab-btn:hover {
-    text-decoration: underline;
-}
-.clear-btn {
-    position: absolute;
-    left: 18px;
-    top: 18px;
-    font-size: 12px;
-    color: #a78bfa;
-    text-decoration: none;
-}
-
-.new-tab-btn {
-    position: absolute;
-    right: 18px;
-    top: 18px;
-    font-size: 12px;
-    color: #38bdf8;
-    text-decoration: none;
-}
-
-.new-tab-btn:hover,
-.clear-btn:hover {
-    text-decoration: underline;
-}
