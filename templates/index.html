@@ -21,40 +21,38 @@
     <!-- CHAT BODY -->
     <div class="chat-body" id="chatBody">
 
-
         {% if messages %}
             {% for msg in messages %}
 
                 {% if msg.role == "user" %}
-                    <!-- USER MESSAGE (RIGHT) -->
-                    <div class="msg-row right">
-                        <div class="user-msg">
-                            {{ msg.content }}
-                        </div>
+                <!-- USER MESSAGE (RIGHT) -->
+                <div class="msg-row right">
+                    <div class="user-msg">
+                        {{ msg.content }}
                     </div>
+                </div>
 
                 {% elif msg.role == "assistant" and msg.type == "text" %}
-                    <!-- AI TEXT MESSAGE (LEFT) -->
-<div class="msg-row left">
-    <div class="ai-msg">
-        <div class="thinking">Sam AI is thinking...</div>
-        <pre>{{ msg.content }}</pre>
-    </div>
-</div>
-
+                <!-- AI TEXT MESSAGE (LEFT) -->
+                <div class="msg-row left">
+                    <div class="ai-msg">
+                        <div class="thinking">Sam AI is thinking...</div>
+                        <pre>{{ msg.content }}</pre>
+                    </div>
+                </div>
 
                 {% elif msg.role == "assistant" and msg.type == "image" %}
-                    <!-- AI IMAGE MESSAGE (LEFT) -->
-                    <div class="msg-row left">
-                        <div class="ai-msg">
-                            <img src="{{ msg.content }}"
-                                 style="max-width:100%; border-radius:10px; margin-top:6px;">
-                            <br><br>
-                            <a href="{{ msg.content }}" target="_blank">
-                                ⬇️ Download Image
-                            </a>
-                        </div>
+                <!-- AI IMAGE MESSAGE (LEFT) -->
+                <div class="msg-row left">
+                    <div class="ai-msg">
+                        <img src="{{ msg.content }}"
+                             style="max-width:100%; border-radius:10px; margin-top:6px;">
+                        <br><br>
+                        <a href="{{ msg.content }}" target="_blank">
+                            ⬇️ Download Image
+                        </a>
                     </div>
+                </div>
                 {% endif %}
 
             {% endfor %}
@@ -68,7 +66,7 @@
     </div>
 
     <!-- INPUT -->
-    <form method="POST" class="chat-input">
+    <form method="POST" class="chat-input" id="chatForm">
         <textarea id="questionBox"
                   name="question"
                   placeholder="Type your message..."
@@ -77,23 +75,36 @@
     </form>
 
 </div>
-    <div>
-        <span class="creator">Created by Samir Singh</span>
-    </div>
 
-<!-- ENTER TO SEND -->
+<div>
+    <span class="creator">Created by Samir Singh</span>
+</div>
+
+<!-- JS -->
 <script>
 const textarea = document.getElementById("questionBox");
+const chatBody = document.getElementById("chatBody");
+const form = document.getElementById("chatForm");
+
+// ENTER to send
 textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        this.form.submit();
+        form.submit();
     }
 });
-        const chatBody = document.getElementById("chatBody");
-    if (chatBody) {
+
+// 🔽 Page load hote hi bottom
+window.onload = function () {
+    chatBody.scrollTop = chatBody.scrollHeight;
+};
+
+// 🔽 Question submit hote hi turant bottom
+form.addEventListener("submit", function () {
+    setTimeout(() => {
         chatBody.scrollTop = chatBody.scrollHeight;
-    }
+    }, 30);
+});
 </script>
 
 </body>
