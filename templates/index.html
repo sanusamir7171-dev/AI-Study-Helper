@@ -36,11 +36,13 @@
 
                 {% elif msg.role == "assistant" and msg.type == "text" %}
                     <!-- AI TEXT MESSAGE (LEFT) -->
-                    <div class="msg-row left">
-                        <div class="ai-msg">
-                            <pre>{{ msg.content }}</pre>
-                        </div>
-                    </div>
+<div class="msg-row left">
+    <div class="ai-msg">
+        <div class="thinking">Sam AI is thinking...</div>
+        <pre>{{ msg.content }}</pre>
+    </div>
+</div>
+
 
                 {% elif msg.role == "assistant" and msg.type == "image" %}
                     <!-- AI IMAGE MESSAGE (LEFT) -->
