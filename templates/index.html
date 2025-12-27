@@ -15,42 +15,63 @@
         <p>Your Personal Study Assistant</p>
         <span class="creator">Created by Samir Singh</span>
 
-        <!-- CLEAR BUTTON -->
-        <a href="/clear" class="clear-btn">Clear</a>
+        <!-- CLEAR BUTTON (TOP LEFT) -->
+        <a href="/clear" class="clear-btn">🗑️ Clear Chat</a>
     </div>
 
     <!-- CHAT BODY -->
     <div class="chat-body" id="chatBody">
 
-        {% for msg in messages %}
-            
-            {% if msg.role == "user" %}
-            <div class="msg-row right">
-                <div class="user-msg">{{ msg.content }}</div>
-            </div>
-            {% endif %}
+        {% if messages %}
+            {% for msg in messages %}
 
-            {% if msg.role == "assistant" and msg.type == "text" %}
-            <div class="msg-row left">
-                <div class="ai-msg typing" data-text="{{ msg.content|e }}"></div>
-            </div>
-            {% endif %}
-
-            {% if msg.role == "assistant" and msg.type == "image" %}
-            <div class="msg-row left">
-                <div class="ai-msg">
-                    <img src="{{ msg.content }}" style="max-width:100%; border-radius:12px;">
+                {% if msg.role == "user" %}
+                <!-- USER MESSAGE -->
+                <div class="msg-row right">
+                    <div class="user-msg">{{ msg.content }}</div>
                 </div>
-            </div>
-            {% endif %}
+                {% endif %}
 
-        {% endfor %}
+                {% if msg.role == "assistant" and msg.type == "text" %}
+                <!-- AI TEXT MESSAGE -->
+                <div class="msg-row left">
+                    <div class="ai-msg typing"
+                         data-text="{{ msg.content|e }}">
+                        <span class="thinking">Sam AI is thinking...</span>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if msg.role == "assistant" and msg.type == "image" %}
+                <!-- AI IMAGE MESSAGE -->
+                <div class="msg-row left">
+                    <div class="ai-msg">
+                        <img src="{{ msg.content }}"
+                             style="max-width:100%; border-radius:10px; margin-top:6px;">
+                        <br><br>
+                        <a href="{{ msg.content }}" target="_blank">
+                            ⬇️ Download Image
+                        </a>
+                    </div>
+                </div>
+                {% endif %}
+
+            {% endfor %}
+        {% else %}
+            <div class="empty-state">
+                Ask me anything ✨<br>
+                (You can also ask for images & diagrams 🖼️)
+            </div>
+        {% endif %}
 
     </div>
 
     <!-- INPUT -->
     <form method="POST" class="chat-input">
-        <textarea name="question" placeholder="Type your question..." required></textarea>
+        <textarea id="questionBox"
+                  name="question"
+                  placeholder="Type your message..."
+                  required></textarea>
         <button type="submit">➤</button>
     </form>
 
@@ -60,14 +81,22 @@
 <script>
 const chatBody = document.getElementById("chatBody");
 
-// auto scroll bottom
+// always stay at bottom
 chatBody.scrollTop = chatBody.scrollHeight;
+
+// ENTER to send
+const textarea = document.getElementById("questionBox");
+textarea.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        this.form.submit();
+    }
+});
 
 // TYPEWRITER EFFECT
 document.querySelectorAll(".typing").forEach(el => {
     const text = el.dataset.text;
     let i = 0;
-    el.innerHTML = "<span class='thinking'>Sam AI is thinking...</span>";
 
     setTimeout(() => {
         el.innerHTML = "";
