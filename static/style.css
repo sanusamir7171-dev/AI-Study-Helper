@@ -178,7 +178,7 @@ body {
 }
 .user-msg,
 .ai-msg {
-    max-width: 80%;
+    max-width: 90%;
 }
 .chat-header {
     padding: 36px 22px 24px;
