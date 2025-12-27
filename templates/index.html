@@ -133,9 +133,12 @@ window.addEventListener("popstate", function () {
         window.history.back(); // exit page
     }
 });
-    if (performance.navigation.type === 1) {
-    window.location.href = "/";
-}
+document.addEventListener("visibilitychange", function () {
+    if (document.visibilityState === "visible") {
+        // app background se aayi → clear chat
+        window.location.href = "/clear";
+    }
+});
 </script>
 
 </body>
