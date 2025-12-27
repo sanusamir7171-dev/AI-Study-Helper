@@ -90,20 +90,33 @@ const form = document.getElementById("chatForm");
 textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        form.submit();
+        form.requestSubmit();
     }
 });
 
-// 🔽 Page load hote hi bottom
+// PAGE LOAD → always bottom
 window.onload = function () {
     chatBody.scrollTop = chatBody.scrollHeight;
 };
 
-// 🔽 Question submit hote hi turant bottom
+// FORM SUBMIT → instant UI update
 form.addEventListener("submit", function () {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // ✅ 1️⃣ User message turant screen par
+    const userRow = document.createElement("div");
+    userRow.className = "msg-row right";
+    userRow.innerHTML = `<div class="user-msg">${text}</div>`;
+    chatBody.appendChild(userRow);
+
+    // ✅ 2️⃣ Textarea clear turant
+    textarea.value = "";
+
+    // ✅ 3️⃣ Scroll bottom
     setTimeout(() => {
         chatBody.scrollTop = chatBody.scrollHeight;
-    }, 30);
+    }, 20);
 });
 </script>
 
