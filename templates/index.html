@@ -86,7 +86,7 @@ const textarea = document.getElementById("questionBox");
 const chatBody = document.getElementById("chatBody");
 const form = document.getElementById("chatForm");
 
-// ENTER to send
+// ENTER = submit
 textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -95,30 +95,27 @@ textarea.addEventListener("keydown", function (e) {
 });
 
 // PAGE LOAD → always bottom
-window.onload = function () {
+window.addEventListener("load", () => {
     chatBody.scrollTop = chatBody.scrollHeight;
-};
+});
 
-// FORM SUBMIT → instant UI update
+// FORM SUBMIT HANDLER
 form.addEventListener("submit", function () {
-    const text = textarea.value.trim();
-    if (!text) return;
+    // 👉 sirf UX ke liye
+    // backend hi message render karega
 
-    // ✅ 1️⃣ User message turant screen par
-    const userRow = document.createElement("div");
-    userRow.className = "msg-row right";
-    userRow.innerHTML = `<div class="user-msg">${text}</div>`;
-    chatBody.appendChild(userRow);
+    // textarea turant clear
+    setTimeout(() => {
+        textarea.value = "";
+    }, 0);
 
-    // ✅ 2️⃣ Textarea clear turant
-    textarea.value = "";
-
-    // ✅ 3️⃣ Scroll bottom
+    // scroll bottom
     setTimeout(() => {
         chatBody.scrollTop = chatBody.scrollHeight;
-    }, 20);
+    }, 50);
 });
 </script>
+
 
 </body>
 </html>
