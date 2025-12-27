@@ -5,30 +5,36 @@
     font-family: "Segoe UI", Arial, sans-serif;
 }
 
-/* 🌈 FULL SCREEN BACKGROUND */
+/* 🌍 SAFE VIEWPORT (desktop + mobile + keyboard safe) */
+html, body {
+    height: 100%;
+    width: 100%;
+}
+
+/* 🌈 BACKGROUND */
 body {
-    height: 100vh;
-    width: 100vw;
+    min-height: 100svh; /* 🔥 mobile keyboard safe */
     background: radial-gradient(circle at top, #0f172a, #020617 70%);
     color: #e5e7eb;
     overflow: hidden;
 }
 
-/* 🖥️ FULL SCREEN CHAT */
+/* 🖥️ CHAT WRAPPER */
 .chat-wrapper {
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(180deg, #020617, #020617);
+    width: 100%;
+    height: 100%;
     display: flex;
     flex-direction: column;
+    background: linear-gradient(180deg, #020617, #020617);
 }
 
-/* HEADER (⬇️ thoda niche) */
+/* 🔝 HEADER */
 .chat-header {
-    padding: 44px 22px 26px;
+    padding: 36px 22px 24px;
     text-align: center;
     border-bottom: 1px solid rgba(148,163,184,0.15);
     position: relative;
+    flex-shrink: 0;
 }
 
 .chat-header h1 {
@@ -43,16 +49,11 @@ body {
     margin-top: 4px;
 }
 
-.creator {
-    font-size: 12px;
-    color: #94a3b8;
-}
-
-/* CLEAR BUTTON */
+/* 🗑️ CLEAR CHAT */
 .clear-btn {
     position: absolute;
-    left: 18px;
-    top: 18px;
+    left: 16px;
+    top: 16px;
     font-size: 12px;
     color: #a78bfa;
     text-decoration: none;
@@ -61,17 +62,18 @@ body {
     text-decoration: underline;
 }
 
-/* CHAT BODY */
+/* 💬 CHAT BODY */
 .chat-body {
     flex: 1;
     padding: 24px;
     overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
 /* EMPTY */
 .empty-state {
     text-align: center;
-    margin-top: 35%;
+    margin-top: 30%;
     color: #94a3b8;
     font-size: 15px;
 }
@@ -82,7 +84,7 @@ body {
     margin-bottom: 14px;
 }
 
-/* USER MESSAGE (⬅️ wider) */
+/* USER MESSAGE */
 .msg-row.right {
     justify-content: flex-end;
 }
@@ -96,7 +98,7 @@ body {
     box-shadow: 0 4px 12px rgba(56,189,248,0.35);
 }
 
-/* AI MESSAGE (⬅️ wider) */
+/* AI MESSAGE */
 .msg-row.left {
     justify-content: flex-start;
 }
@@ -116,22 +118,24 @@ body {
     line-height: 1.7;
 }
 
-/* THINKING TEXT */
+/* THINKING */
 .thinking {
     font-size: 13px;
     color: #a78bfa;
     margin-bottom: 6px;
     font-style: italic;
-    opacity: 0.9;
 }
 
-/* INPUT AREA */
+/* ⌨️ INPUT AREA (ALWAYS VISIBLE) */
 .chat-input {
     display: flex;
     gap: 14px;
     padding: 16px;
     border-top: 1px solid rgba(148,163,184,0.15);
     background: #020617;
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
 }
 
 .chat-input textarea {
@@ -163,7 +167,6 @@ body {
     cursor: pointer;
     color: #020617;
     box-shadow: 0 0 20px rgba(56,189,248,0.6);
-    transition: 0.25s;
 }
 .chat-input button:hover {
     transform: scale(1.08);
@@ -177,20 +180,12 @@ body {
     background: linear-gradient(#38bdf8, #0ea5e9);
     border-radius: 10px;
 }
-/* 📱 MOBILE VIEW */
+
+/* 📱 MOBILE TUNING */
 @media (max-width: 768px) {
 
-    body {
-        overflow: hidden;
-    }
-
-    .chat-wrapper {
-        width: 100vw;
-        height: 100vh;
-    }
-
     .chat-header {
-        padding: 28px 16px 20px;
+        padding: 26px 14px 18px;
     }
 
     .chat-header h1 {
@@ -212,7 +207,7 @@ body {
     }
 
     .chat-input {
-        padding: 12px;
+        padding: 10px;
         gap: 10px;
     }
 
