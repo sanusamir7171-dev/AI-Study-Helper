@@ -7,7 +7,7 @@
 
 /* 🌈 FULL SCREEN BACKGROUND */
 body {
-    height: 98vh;
+    height: 100vh;
     width: 100vw;
     background: radial-gradient(circle at top, #0f172a, #020617 70%);
     color: #e5e7eb;
@@ -17,7 +17,7 @@ body {
 /* 🖥️ FULL SCREEN CHAT */
 .chat-wrapper {
     width: 100vw;
-    height: 99vh;
+    height: 100vh;
     background: linear-gradient(180deg, #020617, #020617);
     display: flex;
     flex-direction: column;
@@ -176,4 +176,58 @@ body {
 .chat-body::-webkit-scrollbar-thumb {
     background: linear-gradient(#38bdf8, #0ea5e9);
     border-radius: 10px;
+}
+/* 📱 MOBILE VIEW */
+@media (max-width: 768px) {
+
+    body {
+        overflow: hidden;
+    }
+
+    .chat-wrapper {
+        width: 100vw;
+        height: 100vh;
+    }
+
+    .chat-header {
+        padding: 28px 16px 20px;
+    }
+
+    .chat-header h1 {
+        font-size: 22px;
+    }
+
+    .chat-header p {
+        font-size: 12px;
+    }
+
+    .chat-body {
+        padding: 14px;
+    }
+
+    .user-msg,
+    .ai-msg {
+        max-width: 92%;
+        font-size: 14px;
+    }
+
+    .chat-input {
+        padding: 12px;
+        gap: 10px;
+    }
+
+    .chat-input textarea {
+        height: 48px;
+        font-size: 14px;
+    }
+
+    .chat-input button {
+        width: 48px;
+        height: 48px;
+        font-size: 18px;
+    }
+
+    .thinking {
+        font-size: 12px;
+    }
 }
