@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Sam AI</title>
+    <title>Samir AI</title>
     <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
@@ -16,57 +16,36 @@
     </div>
 
     <div class="chat-body">
-
-        {% if result %}
-            
-            {% if result.type == "text" %}
-                <div class="ai-message">
-                    <span class="ai-name">Sam AI</span>
-                    <pre>{{ result.data }}</pre>
-                </div>
-            {% elif result.type == "image" %}
-                <div class="ai-message">
-                    <span class="ai-name">Sam AI</span>
-                    <p>Generated Image 👇</p>
-                    <img src="{{ result.data }}" alt="AI Generated Image"
-                         style="max-width:100%; border-radius:10px; margin-top:10px;">
-                    <br><br>
-                    <a href="{{ result.data }}" target="_blank" download>
-                        ⬇️ Download Image
-                    </a>
-                </div>
-            {% endif %}
-
+        {% if answer %}
+        <div class="ai-message">
+            <span class="ai-name">Sam AI</span>
+            <pre>{{ answer }}</pre>
+        </div>
         {% else %}
-            <div class="empty-state">
-                Ask me anything related to study ✨<br>
-                (You can also ask for diagrams & images 🖼️)
-            </div>
+        <div class="empty-state">
+            Ask me anything related to study ✨
+        </div>
         {% endif %}
-
     </div>
 
     <form method="POST" class="chat-input">
-        <textarea id="questionBox"
-                  name="question"
-                  placeholder="Type your question here or ask for an image..."
-                  required></textarea>
+        <textarea id="questionBox" name="question" placeholder="Type your question here..." required></textarea>
 
         <button type="submit">➤</button>
     </form>
 
 </div>
-
 <script>
 const textarea = document.getElementById("questionBox");
 
 textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
-        e.preventDefault();
-        this.form.submit();
+        e.preventDefault();          // new line roke
+        this.form.submit();          // form submit
     }
 });
 </script>
+
 
 </body>
 </html>
