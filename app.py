@@ -1,18 +1,24 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, session
 from openai import OpenAI
 from datetime import datetime
 import os
 
 app = Flask(__name__)
+
+# 🔐 Session ke liye secret key (IMPORTANT)
+app.secret_key = os.getenv("FLASK_SECRET_KEY", "samir-ai-secret-key")
+
 client = OpenAI()   # API key ENV se aayegi
 
-# 🧠 Conversation memory (server side)
-conversation = []
 
 def ai_answer(question):
-    global conversation
+    # 🧠 Per-user conversation (SESSION BASED)
+    if "conversation" not in session:
+        session["conversation"] = []
 
-    # USER MESSAGE SAVE
+    conversation = session["conversation"]
+
+    # 👤 USER MESSAGE SAVE
     conversation.append({
         "role": "user",
         "type": "text",
@@ -31,13 +37,13 @@ def ai_answer(question):
                 size="1024x1024"
             )
 
-            img_url = img.data[0].url
-
             conversation.append({
                 "role": "assistant",
                 "type": "image",
-                "content": img_url
+                "content": img.data[0].url
             })
+
+            session["conversation"] = conversation
             return
 
         except Exception as e:
@@ -46,9 +52,10 @@ def ai_answer(question):
                 "type": "text",
                 "content": f"Image Error: {e}"
             })
+            session["conversation"] = conversation
             return
 
-    # 🧠 SYSTEM IDENTITY + DATE (REAL TIME)
+    # 🧠 SYSTEM IDENTITY + REAL DATE
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
@@ -82,12 +89,10 @@ RULES:
             input=context
         )
 
-        answer = res.output_text
-
         conversation.append({
             "role": "assistant",
             "type": "text",
-            "content": answer
+            "content": res.output_text
         })
 
     except Exception as e:
@@ -97,26 +102,29 @@ RULES:
             "content": f"AI Error: {e}"
         })
 
+    # 💾 Save back to session
+    session["conversation"] = conversation
+
 
 @app.route("/", methods=["GET", "POST"])
 def home():
+    if "conversation" not in session:
+        session["conversation"] = []
+
     if request.method == "POST":
         question = request.form["question"]
         ai_answer(question)
         return redirect(url_for("home"))
 
-    return render_template("index.html", messages=conversation)
+    return render_template("index.html", messages=session["conversation"])
 
 
 @app.route("/clear")
 def clear_chat():
-    global conversation
-    conversation = []
+    session.pop("conversation", None)
     return redirect(url_for("home"))
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
-
-
+    app.run(host="0.0.0.0", port=port, debug=True)
