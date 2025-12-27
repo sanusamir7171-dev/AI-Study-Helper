@@ -229,3 +229,10 @@ body {
 .clear-btn:hover {
     text-decoration: underline;
 }
+.thinking {
+    font-size: 13px;
+    color: #a78bfa;
+    margin-bottom: 6px;
+    font-style: italic;
+    opacity: 0.9;
+}
