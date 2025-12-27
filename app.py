@@ -5,14 +5,20 @@ import os
 
 app = Flask(__name__)
 
-# 🔐 Session ke liye secret key (IMPORTANT)
-app.secret_key = os.getenv("FLASK_SECRET_KEY", "samir-ai-secret-key")
+# 🔐 IMPORTANT:
+# Flask secret key .env / Environment variable se aayegi
+# GitHub me kabhi hardcode mat karna
+app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
-client = OpenAI()   # API key ENV se aayegi
+# 🔐 IMPORTANT:
+# OpenAI API key bhi ENV se hi aayegi
+client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY")
+)
 
 
 def ai_answer(question):
-    # 🧠 Per-user conversation (SESSION BASED)
+    # 🧠 SESSION BASED conversation (har user ke liye alag)
     if "conversation" not in session:
         session["conversation"] = []
 
@@ -55,7 +61,7 @@ def ai_answer(question):
             session["conversation"] = conversation
             return
 
-    # 🧠 SYSTEM IDENTITY + REAL DATE
+    # 🧠 SYSTEM PROMPT (identity + real date)
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
@@ -72,7 +78,6 @@ RULES:
 - Remember the ongoing conversation context.
 """
 
-    # TEXT CONTEXT ONLY
     context = [{"role": "system", "content": system_prompt}]
 
     for msg in conversation:
@@ -82,7 +87,7 @@ RULES:
                 "content": msg["content"]
             })
 
-    # 📝 TEXT ANSWER
+    # 📝 TEXT RESPONSE
     try:
         res = client.responses.create(
             model="gpt-4.1-mini",
@@ -102,7 +107,6 @@ RULES:
             "content": f"AI Error: {e}"
         })
 
-    # 💾 Save back to session
     session["conversation"] = conversation
 
 
@@ -112,11 +116,13 @@ def home():
         session["conversation"] = []
 
     if request.method == "POST":
-        question = request.form["question"]
-        ai_answer(question)
+        ai_answer(request.form["question"])
         return redirect(url_for("home"))
 
-    return render_template("index.html", messages=session["conversation"])
+    return render_template(
+        "index.html",
+        messages=session["conversation"]
+    )
 
 
 @app.route("/clear")
@@ -127,4 +133,5 @@ def clear_chat():
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=True)
+    app.run(host="0.0.0.0", port=port)
+
