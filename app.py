@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for
 from openai import OpenAI
+from datetime import datetime
 import os
 
 app = Flask(__name__)
@@ -57,10 +58,33 @@ def ai_answer(question):
             for m in conversation if m["type"] == "text"
         ]
 
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=context
-        )
+today = datetime.now().strftime("%d %B %Y")
+
+system_identity = f"""
+You are an AI assistant named Sam AI.
+
+IMPORTANT FACTS (never forget):
+- You were created by Samir Singh.
+- Your creation date is 27 December 2025.
+- Today’s real date is {today}.
+
+RULES:
+- If asked "who created you", answer: "I was created by Samir Singh."
+- If asked "when were you created", answer: "I was created on 27 December 2025."
+- If asked today's date, always answer according to {today}.
+- Never assume the year is 2024.
+- Always use the current year.
+"""
+
+res = client.responses.create(
+    model="gpt-4.1-mini",
+    input=[
+        {
+            "role": "system",
+            "content": system_identity
+        }
+    ] + context
+)
 
         answer = res.output_text
 
@@ -100,3 +124,4 @@ def clear_chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
