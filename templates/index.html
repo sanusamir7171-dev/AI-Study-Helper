@@ -59,7 +59,7 @@
             {% endfor %}
         {% else %}
             <div class="empty-state">
-                Ask me anything ✨<br>
+                Ask me anything ✨
             </div>
         {% endif %}
 
@@ -75,13 +75,14 @@
     </form>
 
 </div>
+
 <!-- JS -->
 <script>
 const textarea = document.getElementById("questionBox");
 const chatBody = document.getElementById("chatBody");
 const form = document.getElementById("chatForm");
 
-// ENTER = submit
+/* ENTER = submit */
 textarea.addEventListener("keydown", function (e) {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
@@ -89,41 +90,48 @@ textarea.addEventListener("keydown", function (e) {
     }
 });
 
-// PAGE LOAD → always bottom
+/* PAGE LOAD → scroll bottom */
 window.addEventListener("load", () => {
     chatBody.scrollTop = chatBody.scrollHeight;
 });
 
-// FORM SUBMIT HANDLER
+/* FORM SUBMIT → UX smooth */
 form.addEventListener("submit", function () {
-    // 👉 sirf UX ke liye
-    // backend hi message render karega
-
-    // textarea turant clear
     setTimeout(() => {
         textarea.value = "";
     }, 0);
 
-    // scroll bottom
     setTimeout(() => {
         chatBody.scrollTop = chatBody.scrollHeight;
     }, 50);
 });
 
-/* 🔁 Fix mobile back button issue */
-(function () {
-    // replace current history entry
-    window.history.replaceState({}, document.title, window.location.pathname);
+/* 🔙 MOBILE BACK BUTTON (2 PRESS EXIT) */
+let backPressCount = 0;
+let backTimer = null;
 
-    window.addEventListener("popstate", function () {
-        // second back → allow exit
-        window.history.go(-1);
-    });
-})();
+// push initial state
+window.history.pushState(null, "", window.location.href);
 
+window.addEventListener("popstate", function () {
+    backPressCount++;
 
+    if (backPressCount === 1) {
+        // stay on page
+        window.history.pushState(null, "", window.location.href);
+
+        // reset after 1.5 sec
+        backTimer = setTimeout(() => {
+            backPressCount = 0;
+        }, 1500);
+
+    } else if (backPressCount === 2) {
+        clearTimeout(backTimer);
+        backPressCount = 0;
+        window.history.back(); // exit page
+    }
+});
 </script>
-
 
 </body>
 </html>
