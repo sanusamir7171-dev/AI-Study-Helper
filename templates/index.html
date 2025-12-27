@@ -113,6 +113,19 @@ form.addEventListener("submit", function () {
         chatBody.scrollTop = chatBody.scrollHeight;
     }, 50);
 });
+    <script>
+/* 🔁 Fix mobile back button issue */
+(function () {
+    // replace current history entry
+    window.history.replaceState({}, document.title, window.location.pathname);
+
+    window.addEventListener("popstate", function () {
+        // second back → allow exit
+        window.history.go(-1);
+    });
+})();
+</script>
+
 </script>
 
 
