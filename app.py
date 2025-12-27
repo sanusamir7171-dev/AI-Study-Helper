@@ -3,35 +3,63 @@ from openai import OpenAI
 import os
 
 app = Flask(__name__)
-
-# ✅ API key environment se aayegi
-client = OpenAI()   # yahan key nahi likhte
+client = OpenAI()   # API key env se aayegi
 
 def ai_answer(question):
-    q = question.lower().strip()
+    q = question.lower()
 
-    # Rule-based answers
-    if "matrix" in q:
-        return "Matrix multiplication explanation..."
+    image_words = ["draw", "image", "photo", "diagram", "picture"]
 
-    # 🔥 Real AI fallback
+    # 🖼️ IMAGE GENERATION
+    if any(w in q for w in image_words):
+        try:
+            img = client.images.generate(
+                model="gpt-image-1",
+                prompt=question,
+                size="512x512"
+            )
+            return {
+                "is_image": True,
+                "content": img.data[0].url
+            }
+        except Exception as e:
+            return {
+                "is_image": False,
+                "content": str(e)
+            }
+
+    # 📝 TEXT ANSWER
     try:
-        response = client.responses.create(
+        res = client.responses.create(
             model="gpt-4.1-mini",
-            input=f"Explain simply with examples:\n{question}"
+            input=question
         )
-        return response.output_text
-
+        return {
+            "is_image": False,
+            "content": res.output_text
+        }
     except Exception as e:
-        return f"AI Error: {e}"
+        return {
+            "is_image": False,
+            "content": str(e)
+        }
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    answer = ""
+    answer = None
+    is_image = False
+
     if request.method == "POST":
         question = request.form["question"]
-        answer = ai_answer(question)
-    return render_template("index.html", answer=answer)
+        result = ai_answer(question)
+        answer = result["content"]
+        is_image = result["is_image"]
+
+    return render_template(
+        "index.html",
+        answer=answer,
+        is_image=is_image
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
