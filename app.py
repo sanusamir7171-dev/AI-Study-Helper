@@ -3,42 +3,35 @@ from openai import OpenAI
 import os
 
 app = Flask(__name__)
-client = OpenAI()   # API key env se aayegi
+
+# ✅ API key environment se aayegi
+client = OpenAI()   # yahan key nahi likhte
 
 def ai_answer(question):
-    q = question.lower()
+    q = question.lower().strip()
 
-    # 🖼️ IMAGE REQUEST CHECK
-    image_keywords = ["draw", "image", "photo", "diagram", "picture", "generate image"]
+    # Rule-based answers
+    if "matrix" in q:
+        return "Matrix multiplication explanation..."
 
-    if any(word in q for word in image_keywords):
-        try:
-            img = client.images.generate(
-                model="gpt-image-1",
-                prompt=question,
-                size="512x512"
-            )
-            return {"type": "image", "data": img.data[0].url}
-        except Exception as e:
-            return {"type": "text", "data": str(e)}
-
-    # 🔤 NORMAL TEXT AI
+    # 🔥 Real AI fallback
     try:
-        res = client.responses.create(
+        response = client.responses.create(
             model="gpt-4.1-mini",
-            input=question
+            input=f"Explain simply with examples:\n{question}"
         )
-        return {"type": "text", "data": res.output_text}
+        return response.output_text
+
     except Exception as e:
-        return {"type": "text", "data": str(e)}
+        return f"AI Error: {e}"
 
 @app.route("/", methods=["GET", "POST"])
 def home():
-    result = None
+    answer = ""
     if request.method == "POST":
         question = request.form["question"]
-        result = ai_answer(question)
-    return render_template("index.html", result=result)
+        answer = ai_answer(question)
+    return render_template("index.html", answer=answer)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
