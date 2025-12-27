@@ -9,46 +9,74 @@
 
 <div class="chat-wrapper">
 
+    <!-- HEADER -->
     <div class="chat-header">
         <h1>🤖 Sam AI</h1>
         <p>Your Personal Study Assistant</p>
         <span class="creator">Created by Samir Singh</span>
+        <a href="/clear" style="font-size:12px; color:#a78bfa; text-decoration:none;">
+            🗑️ Clear Chat
+        </a>
     </div>
 
+    <!-- CHAT BODY -->
     <div class="chat-body">
 
-        {% if answer %}
-            <div class="ai-message">
-                <span class="ai-name">Sam AI</span>
+        {% if messages %}
+            {% for msg in messages %}
 
-                {% if is_image %}
-                    <img src="{{ answer }}"
-                         style="max-width:100%; border-radius:10px; margin-top:10px;">
-                    <br><br>
-                    <a href="{{ answer }}" target="_blank">⬇️ Download Image</a>
-                {% else %}
-                    <pre>{{ answer }}</pre>
+                {% if msg.role == "user" %}
+                    <!-- USER MESSAGE (RIGHT) -->
+                    <div class="msg-row right">
+                        <div class="user-msg">
+                            {{ msg.content }}
+                        </div>
+                    </div>
+
+                {% elif msg.role == "assistant" and msg.type == "text" %}
+                    <!-- AI TEXT MESSAGE (LEFT) -->
+                    <div class="msg-row left">
+                        <div class="ai-msg">
+                            <pre>{{ msg.content }}</pre>
+                        </div>
+                    </div>
+
+                {% elif msg.role == "assistant" and msg.type == "image" %}
+                    <!-- AI IMAGE MESSAGE (LEFT) -->
+                    <div class="msg-row left">
+                        <div class="ai-msg">
+                            <img src="{{ msg.content }}"
+                                 style="max-width:100%; border-radius:10px; margin-top:6px;">
+                            <br><br>
+                            <a href="{{ msg.content }}" target="_blank">
+                                ⬇️ Download Image
+                            </a>
+                        </div>
+                    </div>
                 {% endif %}
 
-            </div>
+            {% endfor %}
         {% else %}
             <div class="empty-state">
                 Ask me anything ✨<br>
-                You can also ask for diagrams & images 🖼️
+                (You can also ask for images & diagrams 🖼️)
             </div>
         {% endif %}
 
     </div>
 
+    <!-- INPUT -->
     <form method="POST" class="chat-input">
-        <textarea id="questionBox" name="question"
-                  placeholder="Type your question or ask for image..."
+        <textarea id="questionBox"
+                  name="question"
+                  placeholder="Type your message..."
                   required></textarea>
         <button type="submit">➤</button>
     </form>
 
 </div>
 
+<!-- ENTER TO SEND -->
 <script>
 const textarea = document.getElementById("questionBox");
 textarea.addEventListener("keydown", function (e) {
