@@ -1,29 +1,29 @@
 from flask import Flask, render_template, request, redirect, url_for
 from openai import OpenAI
-
+from datetime import datetime
 import os
 
 app = Flask(__name__)
-client = OpenAI()   # API key env se aayegi
+client = OpenAI()   # API key ENV se aayegi
 
-# 🧠 CONVERSATION MEMORY (server-level)
+# 🧠 Conversation memory (server side)
 conversation = []
 
 def ai_answer(question):
     global conversation
-    q = question.lower()
 
-    image_words = ["draw", "image", "photo", "diagram", "picture", "generate"]
-
-    # 🧍 USER MESSAGE SAVE
+    # USER MESSAGE SAVE
     conversation.append({
         "role": "user",
         "type": "text",
         "content": question
     })
 
+    q = question.lower()
+    image_words = ["draw", "image", "photo", "diagram", "picture", "generate"]
+
     # 🖼️ IMAGE GENERATION
-    if any(w in q for w in image_words):
+    if any(word in q for word in image_words):
         try:
             img = client.images.generate(
                 model="gpt-image-1",
@@ -33,13 +33,11 @@ def ai_answer(question):
 
             img_url = img.data[0].url
 
-            # 🤖 AI IMAGE RESPONSE SAVE
             conversation.append({
                 "role": "assistant",
                 "type": "image",
                 "content": img_url
             })
-
             return
 
         except Exception as e:
@@ -50,23 +48,42 @@ def ai_answer(question):
             })
             return
 
-    # 📝 TEXT ANSWER (WITH MEMORY)
+    # 🧠 SYSTEM IDENTITY + DATE (REAL TIME)
+    today = datetime.now().strftime("%d %B %Y")
+
+    system_prompt = f"""
+You are Sam AI.
+
+IMPORTANT FACTS:
+- You were created by Samir Singh.
+- Your creation date is 27 December 2025.
+- Today's real date is {today}.
+
+RULES:
+- Never say the year is 2024.
+- Always answer with the correct current date.
+- Remember the ongoing conversation context.
+"""
+
+    # TEXT CONTEXT ONLY
+    context = [{"role": "system", "content": system_prompt}]
+
+    for msg in conversation:
+        if msg["type"] == "text":
+            context.append({
+                "role": msg["role"],
+                "content": msg["content"]
+            })
+
+    # 📝 TEXT ANSWER
     try:
-        # Only text messages AI ko bhejte hain
-        context = [
-            {"role": m["role"], "content": m["content"]}
-            for m in conversation if m["type"] == "text"
-        ]
-
-res = client.responses.create(
-    model="gpt-4.1-mini",
-    input=context
-)
-
+        res = client.responses.create(
+            model="gpt-4.1-mini",
+            input=context
+        )
 
         answer = res.output_text
 
-        # 🤖 AI TEXT RESPONSE SAVE
         conversation.append({
             "role": "assistant",
             "type": "text",
@@ -88,10 +105,8 @@ def home():
         ai_answer(question)
         return redirect(url_for("home"))
 
-    return render_template(
-        "index.html",
-        messages=conversation
-    )
+    return render_template("index.html", messages=conversation)
+
 
 @app.route("/clear")
 def clear_chat():
@@ -99,8 +114,7 @@ def clear_chat():
     conversation = []
     return redirect(url_for("home"))
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
