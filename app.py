@@ -5,25 +5,21 @@ import os
 
 app = Flask(__name__)
 
-# 🔐 Secret key (ENV se)
-app.secret_key = os.environ.get("FLASK_SECRET_KEY")
+# 🔐 Secret key (ENV)
+app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 
-# 🔐 OpenAI client (API key ENV se)
-client = OpenAI(
-    api_key=os.environ.get("OPENAI_API_KEY")
-)
+# 🔐 OpenAI client (ENV)
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 
 # 🧠 AI LOGIC
 def ai_answer(question):
-
-    # SESSION BASED conversation (per user)
     if "conversation" not in session:
         session["conversation"] = []
 
     conversation = session["conversation"]
 
-    # 👤 USER MESSAGE SAVE
+    # USER MESSAGE
     conversation.append({
         "role": "user",
         "type": "text",
@@ -60,21 +56,14 @@ def ai_answer(question):
             session["conversation"] = conversation
             return
 
-    # 🧠 SYSTEM PROMPT + REAL DATE
+    # 🧠 SYSTEM PROMPT
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
 You are Sam AI.
-
-IMPORTANT FACTS:
-- You were created by Samir Singh.
-- Your creation date is 27 December 2025.
-- Today's real date is {today}.
-
-RULES:
-- Never say the year is 2024.
-- Always answer with the correct current date.
-- Remember the ongoing conversation context.
+Created by Samir Singh.
+Creation date: 27 December 2025.
+Today's date: {today}.
 """
 
     context = [{"role": "system", "content": system_prompt}]
@@ -88,11 +77,10 @@ RULES:
 
     # 📝 TEXT RESPONSE
     try:
-res = client.responses.create(
-    model="gpt-4.1-mini",
-    input=context
-)
-
+        res = client.responses.create(
+            model="gpt-4.1-mini",
+            input=context
+        )
 
         conversation.append({
             "role": "assistant",
@@ -110,7 +98,7 @@ res = client.responses.create(
     session["conversation"] = conversation
 
 
-# 🏠 HOME PAGE (ONLY GET)
+# 🏠 HOME (NO POST HERE)
 @app.route("/", methods=["GET"])
 def home():
     return render_template(
@@ -119,31 +107,26 @@ def home():
     )
 
 
-# 💬 ASK API (AJAX)
+# 💬 ASK (AJAX ONLY)
 @app.route("/ask", methods=["POST"])
 def ask():
-    data = request.get_json()
-    question = data.get("question")
+    data = request.get_json(silent=True)
+    question = data.get("question") if data else None
 
     if question:
         ai_answer(question)
+        return jsonify({"status": "ok"})
 
-    return jsonify({"status": "ok"})
+    return jsonify({"status": "error"}), 400
 
 
-# 🧹 CLEAR CHAT
-@app.route("/clear", methods=["GET", "POST"])
+# 🧹 CLEAR CHAT (AJAX SAFE)
+@app.route("/clear", methods=["POST"])
 def clear_chat():
     session.clear()
-    return redirect(url_for("home"))
-
-
+    return jsonify({"status": "cleared"})
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
-
-
