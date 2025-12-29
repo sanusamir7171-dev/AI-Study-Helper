@@ -138,19 +138,16 @@ window.addEventListener("popstate", () => {
     }
 });
 
-/* 🧹 APP BACKGROUND → CLEAR CHAT */
-document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") {
-        fetch("/clear");
-    }
-});
+
   
 /* 🔄 PAGE REFRESH / TAB CLOSE → CLEAR CHAT */
+
+</script>
+<script>
+/* 🔄 Page refresh / tab close */
 window.addEventListener("beforeunload", function () {
     navigator.sendBeacon("/clear");
 });
-
-
 </script>
 
 </body>
