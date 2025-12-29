@@ -1,24 +1,23 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, session, jsonify
 from openai import OpenAI
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 
-# 🔐 IMPORTANT:
-# Flask secret key .env / Environment variable se aayegi
-# GitHub me kabhi hardcode mat karna
+# 🔐 Secret key (ENV se)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY")
 
-# 🔐 IMPORTANT:
-# OpenAI API key bhi ENV se hi aayegi
+# 🔐 OpenAI client (API key ENV se)
 client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
 
 
+# 🧠 AI LOGIC
 def ai_answer(question):
-    # 🧠 SESSION BASED conversation (har user ke liye alag)
+
+    # SESSION BASED conversation (per user)
     if "conversation" not in session:
         session["conversation"] = []
 
@@ -61,7 +60,7 @@ def ai_answer(question):
             session["conversation"] = conversation
             return
 
-    # 🧠 SYSTEM PROMPT (identity + real date)
+    # 🧠 SYSTEM PROMPT + REAL DATE
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
@@ -110,30 +109,34 @@ RULES:
     session["conversation"] = conversation
 
 
-@app.route("/", methods=["GET", "POST"])
+# 🏠 HOME PAGE (ONLY GET)
+@app.route("/", methods=["GET"])
 def home():
-    if "conversation" not in session:
-        session["conversation"] = []
-
-    if request.method == "POST":
-        ai_answer(request.form["question"])
-        return redirect(url_for("home"))
-
     return render_template(
         "index.html",
-        messages=session["conversation"]
+        messages=session.get("conversation", [])
     )
 
 
+# 💬 ASK API (AJAX)
+@app.route("/ask", methods=["POST"])
+def ask():
+    data = request.get_json()
+    question = data.get("question")
+
+    if question:
+        ai_answer(question)
+
+    return jsonify({"status": "ok"})
+
+
+# 🧹 CLEAR CHAT
 @app.route("/clear")
 def clear_chat():
     session.pop("conversation", None)
-    return redirect(url_for("home"))
+    return jsonify({"status": "cleared"})
 
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
-
-
