@@ -138,6 +138,22 @@ window.addEventListener("popstate", () => {
     }
 });
 
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    textarea.value = "";
+
+    await fetch("/ask", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({question: text})
+    });
+
+    location.reload(); // simple + safe
+});
 
   
 /* 🔄 PAGE REFRESH / TAB CLOSE → CLEAR CHAT */
