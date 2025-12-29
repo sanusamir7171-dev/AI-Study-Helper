@@ -131,15 +131,17 @@ def ask():
 
 
 # 🧹 CLEAR CHAT
-@app.route("/clear")
+@app.route("/clear", methods=["GET", "POST"])
 def clear_chat():
     session.clear()
     return redirect(url_for("home"))
 
 
 
+
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
