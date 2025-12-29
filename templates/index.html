@@ -14,11 +14,7 @@
     <div class="chat-header">
         <h1>Sam AI</h1>
         <p>Your Personal Study Assistant</p>
-        <a 
-            href="/clear" style="font-size:12px; color:#a78bfa; text-decoration:none;">
-            Clear Chat
-        </a>
-
+        <a href="/clear" class="clear-btn">Clear Chat</a>
     </div>
 
     <!-- CHAT BODY -->
@@ -28,53 +24,45 @@
             {% for msg in messages %}
 
                 {% if msg.role == "user" %}
-                <!-- USER MESSAGE (RIGHT) -->
                 <div class="msg-row right">
-                    <div class="user-msg">
-                        {{ msg.content }}
-                    </div>
+                    <div class="user-msg">{{ msg.content }}</div>
                 </div>
+                {% endif %}
 
-                {% elif msg.role == "assistant" and msg.type == "text" %}
-                <!-- AI TEXT MESSAGE (LEFT) -->
+                {% if msg.role == "assistant" and msg.type == "text" %}
                 <div class="msg-row left">
                     <div class="ai-msg">
                         <div class="thinking">Sam AI is thinking...</div>
                         <pre>{{ msg.content }}</pre>
                     </div>
                 </div>
+                {% endif %}
 
-                {% elif msg.role == "assistant" and msg.type == "image" %}
-                <!-- AI IMAGE MESSAGE (LEFT) -->
+                {% if msg.role == "assistant" and msg.type == "image" %}
                 <div class="msg-row left">
                     <div class="ai-msg">
                         <img src="{{ msg.content }}"
-                             style="max-width:100%; border-radius:10px; margin-top:6px;">
+                             style="max-width:100%; border-radius:10px;">
                         <br><br>
-                        <a href="{{ msg.content }}" target="_blank">
-                            ⬇️ Download Image
-                        </a>
+                        <a href="{{ msg.content }}" target="_blank">⬇️ Download Image</a>
                     </div>
                 </div>
                 {% endif %}
 
             {% endfor %}
         {% else %}
-            <div class="empty-state">
-                Ask me anything ✨
-            </div>
+            <div class="empty-state">Ask me anything ✨</div>
         {% endif %}
 
     </div>
 
-    <!-- INPUT -->
-    <form method="POST" class="chat-input" id="chatForm">
+    <!-- INPUT (❌ FORM POST NAHI) -->
+    <div class="chat-input">
         <textarea id="questionBox"
-                  name="question"
                   placeholder="Type your message..."
                   required></textarea>
-        <button type="submit">➤</button>
-    </form>
+        <button id="sendBtn">➤</button>
+    </div>
 
 </div>
 
@@ -82,61 +70,78 @@
 <script>
 const textarea = document.getElementById("questionBox");
 const chatBody = document.getElementById("chatBody");
-const form = document.getElementById("chatForm");
+const sendBtn = document.getElementById("sendBtn");
 
-/* ENTER = submit */
-textarea.addEventListener("keydown", function (e) {
+/* 🔼 Always stay bottom */
+function scrollBottom() {
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+window.addEventListener("load", scrollBottom);
+
+/* 📨 SEND MESSAGE (AJAX) */
+function sendMessage() {
+    const text = textarea.value.trim();
+    if (!text) return;
+
+    // ✅ user message turant UI me
+    const userRow = document.createElement("div");
+    userRow.className = "msg-row right";
+    userRow.innerHTML = `<div class="user-msg">${text}</div>`;
+    chatBody.appendChild(userRow);
+
+    textarea.value = "";
+    scrollBottom();
+
+    // ✅ backend ko bina reload bhejo
+    fetch("/ask", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ question: text })
+    })
+    .then(() => {
+        // sirf messages refresh (no history entry)
+        fetch("/")
+            .then(res => res.text())
+            .then(html => {
+                const temp = document.createElement("div");
+                temp.innerHTML = html;
+                const newChat = temp.querySelector("#chatBody");
+                chatBody.innerHTML = newChat.innerHTML;
+                scrollBottom();
+            });
+    });
+}
+
+/* ENTER = SEND */
+textarea.addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
-        form.requestSubmit();
+        sendMessage();
     }
 });
+sendBtn.addEventListener("click", sendMessage);
 
-/* PAGE LOAD → scroll bottom */
-window.addEventListener("load", () => {
-    chatBody.scrollTop = chatBody.scrollHeight;
-});
-
-/* FORM SUBMIT → UX smooth */
-form.addEventListener("submit", function () {
-    setTimeout(() => {
-        textarea.value = "";
-    }, 0);
-
-    setTimeout(() => {
-        chatBody.scrollTop = chatBody.scrollHeight;
-    }, 50);
-});
-
-/* 🔙 MOBILE BACK BUTTON (2 PRESS EXIT) */
-let backPressCount = 0;
+/* 🔙 MOBILE BACK BUTTON → 2 PRESS EXIT */
+let backCount = 0;
 let backTimer = null;
 
-// push initial state
-window.history.pushState(null, "", window.location.href);
+history.replaceState(null, "", location.href);
+window.addEventListener("popstate", () => {
+    backCount++;
 
-window.addEventListener("popstate", function () {
-    backPressCount++;
-
-    if (backPressCount === 1) {
-        // stay on page
-        window.history.pushState(null, "", window.location.href);
-
-        // reset after 1.5 sec
-        backTimer = setTimeout(() => {
-            backPressCount = 0;
-        }, 1500);
-
-    } else if (backPressCount === 2) {
+    if (backCount === 1) {
+        history.pushState(null, "", location.href);
+        backTimer = setTimeout(() => backCount = 0, 1500);
+    } else {
         clearTimeout(backTimer);
-        backPressCount = 0;
-        window.history.back(); // exit page
+        history.back();
     }
 });
-document.addEventListener("visibilitychange", function () {
+
+/* 🧹 APP BACKGROUND → CLEAR CHAT */
+document.addEventListener("visibilitychange", () => {
     if (document.visibilityState === "visible") {
-        // app background se aayi → clear chat
-        window.location.href = "/clear";
+        fetch("/clear");
     }
 });
 </script>
