@@ -1,73 +1,99 @@
 from flask import Flask, render_template, request, session, jsonify
-from openai import OpenAI
 from datetime import datetime
 import os
+import requests
+
+from openai import OpenAI
+from anthropic import Anthropic
 
 app = Flask(__name__)
 
-# 🔐 Secret key (ENV)
+# 🔐 Flask session key (ENV)
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 
-# 🔐 OpenAI client (ENV)
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# 🔐 Clients (ENV keys)
+openai_client = OpenAI(
+    api_key=os.environ.get("OPENAI_API_KEY")
+)
+
+claude_client = Anthropic(
+    api_key=os.environ.get("ANTHROPIC_API_KEY")
+)
+
+HF_API_KEY = os.environ.get("HF_API_KEY")
 
 
-# 🧠 AI LOGIC
+# ---------------- AI PROVIDERS ---------------- #
+
+def ask_openai(prompt, context):
+    try:
+        res = openai_client.responses.create(
+            model="gpt-4.1-mini",
+            input=context + [{"role": "user", "content": prompt}]
+        )
+        return res.output_text
+    except Exception:
+        return None
+
+
+def ask_claude(prompt):
+    try:
+        msg = claude_client.messages.create(
+            model="claude-3-haiku-20240307",
+            max_tokens=700,
+            messages=[{"role": "user", "content": prompt}]
+        )
+        return msg.content[0].text
+    except Exception:
+        return None
+
+
+def ask_huggingface(prompt):
+    try:
+        url = "https://api-inference.huggingface.co/models/google/flan-t5-base"
+        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
+        payload = {"inputs": prompt}
+
+        r = requests.post(url, headers=headers, json=payload, timeout=30)
+        if r.status_code == 200:
+            return r.json()[0]["generated_text"]
+        return "AI is busy, please try again."
+    except Exception:
+        return "AI is busy, please try again."
+
+
+# ---------------- AI LOGIC ---------------- #
+
 def ai_answer(question):
     if "conversation" not in session:
         session["conversation"] = []
 
     conversation = session["conversation"]
 
-    # USER MESSAGE
+    # 👤 Save user message
     conversation.append({
         "role": "user",
         "type": "text",
         "content": question
     })
 
-    q = question.lower()
-    image_words = ["draw", "image", "photo", "diagram", "picture", "generate"]
-
-    # 🖼️ IMAGE GENERATION
-    if any(word in q for word in image_words):
-        try:
-            img = client.images.generate(
-                model="gpt-image-1",
-                prompt=question,
-                size="1024x1024"
-            )
-
-            conversation.append({
-                "role": "assistant",
-                "type": "image",
-                "content": img.data[0].url
-            })
-
-            session["conversation"] = conversation
-            return
-
-        except Exception as e:
-            conversation.append({
-                "role": "assistant",
-                "type": "text",
-                "content": f"Image Error: {e}"
-            })
-            session["conversation"] = conversation
-            return
-
-    # 🧠 SYSTEM PROMPT
     today = datetime.now().strftime("%d %B %Y")
 
     system_prompt = f"""
 You are Sam AI.
-Created by Samir Singh.
-Creation date: 27 December 2025.
-Today's date: {today}.
+
+IMPORTANT FACTS:
+- Created by Samir Singh
+- Creation date: 27 December 2025
+- Today's real date: {today}
+
+RULES:
+- Never say year 2024
+- Answer clearly and correctly
 """
 
+    # Build context for OpenAI
     context = [{"role": "system", "content": system_prompt}]
-
     for msg in conversation:
         if msg["type"] == "text":
             context.append({
@@ -75,30 +101,28 @@ Today's date: {today}.
                 "content": msg["content"]
             })
 
-    # 📝 TEXT RESPONSE
-    try:
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=context
-        )
+    # 🔥 1️⃣ OpenAI
+    answer = ask_openai(question, context)
 
-        conversation.append({
-            "role": "assistant",
-            "type": "text",
-            "content": res.output_text
-        })
+    # 🔁 2️⃣ Claude fallback
+    if answer is None:
+        answer = ask_claude(system_prompt + "\n\n" + question)
 
-    except Exception as e:
-        conversation.append({
-            "role": "assistant",
-            "type": "text",
-            "content": f"AI Error: {e}"
-        })
+    # 🔁 3️⃣ Hugging Face fallback
+    if answer is None:
+        answer = ask_huggingface(question)
+
+    conversation.append({
+        "role": "assistant",
+        "type": "text",
+        "content": answer
+    })
 
     session["conversation"] = conversation
 
 
-# 🏠 HOME (NO POST HERE)
+# ---------------- ROUTES ---------------- #
+
 @app.route("/", methods=["GET"])
 def home():
     return render_template(
@@ -107,25 +131,25 @@ def home():
     )
 
 
-# 💬 ASK (AJAX ONLY)
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json(silent=True)
     question = data.get("question") if data else None
 
-    if question:
-        ai_answer(question)
-        return jsonify({"status": "ok"})
+    if not question:
+        return jsonify({"status": "error"}), 400
 
-    return jsonify({"status": "error"}), 400
+    ai_answer(question)
+    return jsonify({"status": "ok"})
 
 
-# 🧹 CLEAR CHAT (AJAX SAFE)
 @app.route("/clear", methods=["POST"])
 def clear_chat():
     session.clear()
     return jsonify({"status": "cleared"})
 
+
+# ---------------- RUN ---------------- #
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
