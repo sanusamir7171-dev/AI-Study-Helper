@@ -88,10 +88,11 @@ RULES:
 
     # 📝 TEXT RESPONSE
     try:
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=context
-        )
+res = client.responses.create(
+    model="gpt-4.1-mini",
+    input=context
+)
+
 
         conversation.append({
             "role": "assistant",
@@ -142,6 +143,7 @@ def clear_chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
 
 
 
