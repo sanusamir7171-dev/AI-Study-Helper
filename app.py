@@ -16,11 +16,7 @@ openai_client = OpenAI(
     api_key=os.environ.get("OPENAI_API_KEY")
 )
 
-claude_client = Anthropic(
-    api_key=os.environ.get("ANTHROPIC_API_KEY")
-)
 
-HF_API_KEY = os.environ.get("HF_API_KEY")
 
 
 # ---------------- AI PROVIDERS ---------------- #
@@ -36,30 +32,7 @@ def ask_openai(prompt, context):
         return None
 
 
-def ask_claude(prompt):
-    try:
-        msg = claude_client.messages.create(
-            model="claude-3-haiku-20240307",
-            max_tokens=700,
-            messages=[{"role": "user", "content": prompt}]
-        )
-        return msg.content[0].text
-    except Exception:
-        return None
 
-
-def ask_huggingface(prompt):
-    try:
-        url = "https://api-inference.huggingface.co/models/google/flan-t5-base"
-        headers = {"Authorization": f"Bearer {HF_API_KEY}"}
-        payload = {"inputs": prompt}
-
-        r = requests.post(url, headers=headers, json=payload, timeout=30)
-        if r.status_code == 200:
-            return r.json()[0]["generated_text"]
-        return "AI is busy, please try again."
-    except Exception:
-        return "AI is busy, please try again."
 
 
 # ---------------- AI LOGIC ---------------- #
@@ -154,3 +127,4 @@ def clear_chat():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+
