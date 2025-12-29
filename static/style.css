@@ -226,3 +226,8 @@ body {
         font-size: 12px;
     }
 }
+@media (max-width: 768px) {
+    .chat-header {
+        padding: 36px 16px 22px;
+    }
+}
