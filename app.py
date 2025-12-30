@@ -1,15 +1,18 @@
 from flask import Flask, render_template, request, session, jsonify
-from openai import OpenAI
 from datetime import datetime
+import google.generativeai as genai
 import os
 
 app = Flask(__name__)
 
-# 🔐 Secret key (ENV)
+# 🔐 Flask secret
 app.secret_key = os.environ.get("FLASK_SECRET_KEY", "dev-secret")
 
-# 🔐 OpenAI client (ENV)
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+# 🔐 Gemini API key
+genai.configure(api_key=os.environ.get("GEMINI_API_KEY"))
+
+# 🔹 Gemini model
+model = genai.GenerativeModel("gemini-1.5-flash")
 
 
 # 🧠 AI LOGIC
@@ -19,42 +22,12 @@ def ai_answer(question):
 
     conversation = session["conversation"]
 
-    # USER MESSAGE
+    # USER MESSAGE SAVE
     conversation.append({
         "role": "user",
         "type": "text",
         "content": question
     })
-
-    q = question.lower()
-    image_words = ["draw", "image", "photo", "diagram", "picture", "generate"]
-
-    # 🖼️ IMAGE GENERATION
-    if any(word in q for word in image_words):
-        try:
-            img = client.images.generate(
-                model="gpt-image-1",
-                prompt=question,
-                size="1024x1024"
-            )
-
-            conversation.append({
-                "role": "assistant",
-                "type": "image",
-                "content": img.data[0].url
-            })
-
-            session["conversation"] = conversation
-            return
-
-        except Exception as e:
-            conversation.append({
-                "role": "assistant",
-                "type": "text",
-                "content": f"Image Error: {e}"
-            })
-            session["conversation"] = conversation
-            return
 
     # 🧠 SYSTEM PROMPT
     today = datetime.now().strftime("%d %B %Y")
@@ -64,28 +37,28 @@ You are Sam AI.
 Created by Samir Singh.
 Creation date: 27 December 2025.
 Today's date: {today}.
+
+Rules:
+- Be helpful
+- Answer clearly
 """
 
-    context = [{"role": "system", "content": system_prompt}]
+    # 🧩 Build full prompt from conversation
+    full_prompt = system_prompt + "\n\n"
 
     for msg in conversation:
         if msg["type"] == "text":
-            context.append({
-                "role": msg["role"],
-                "content": msg["content"]
-            })
+            role = "User" if msg["role"] == "user" else "Assistant"
+            full_prompt += f"{role}: {msg['content']}\n"
 
-    # 📝 TEXT RESPONSE
+    # 📝 Gemini response
     try:
-        res = client.responses.create(
-            model="gpt-4.1-mini",
-            input=context
-        )
+        response = model.generate_content(full_prompt)
 
         conversation.append({
             "role": "assistant",
             "type": "text",
-            "content": res.output_text
+            "content": response.text
         })
 
     except Exception as e:
@@ -98,7 +71,7 @@ Today's date: {today}.
     session["conversation"] = conversation
 
 
-# 🏠 HOME (NO POST HERE)
+# 🏠 HOME
 @app.route("/", methods=["GET"])
 def home():
     return render_template(
@@ -107,7 +80,7 @@ def home():
     )
 
 
-# 💬 ASK (AJAX ONLY)
+# 💬 ASK (AJAX)
 @app.route("/ask", methods=["POST"])
 def ask():
     data = request.get_json(silent=True)
@@ -120,7 +93,7 @@ def ask():
     return jsonify({"status": "error"}), 400
 
 
-# 🧹 CLEAR CHAT (AJAX SAFE)
+# 🧹 CLEAR CHAT
 @app.route("/clear", methods=["POST"])
 def clear_chat():
     session.clear()
